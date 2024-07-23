@@ -1,0 +1,1 @@
+searchState.loadedDescShard("minigrep", 0, "dzh_crate\nReturns the argument unchanged.\nCalls <code>U::from(self)</code>.\nExampleS")
