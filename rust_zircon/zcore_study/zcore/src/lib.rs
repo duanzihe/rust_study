@@ -7,6 +7,7 @@ extern crate alloc; //当使用 #![no_std] 时，由于不链接标准库，一�
 pub mod object; //包含模块object中的代码
 use crate::object::object_imp::DummyObject; //引入空对象路径
 use crate::object::KernelObject; //为了方便地使用特性提供的方法，记得也加上特性的路径
+use alloc::sync::Arc; //Atomic Reference Counting 引入原子引用计数智能指针。
 
 #[cfg(test)]
 mod tests {
@@ -22,4 +23,13 @@ mod tests {
         o1.set_name("object1");
         assert_eq!(o1.name(), "object1");
     }
+
+    // src/object/object.rs
+    #[test]
+    fn downcast() {
+        let dummy = DummyObject::new();
+        let object: Arc<dyn KernelObject> = dummy;  //向上转换是简单且i自动的。
+        let _result: Arc<DummyObject> = object.downcast_arc::<DummyObject>().unwrap();
+    }
+
 }
