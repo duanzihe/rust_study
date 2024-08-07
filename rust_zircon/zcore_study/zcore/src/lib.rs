@@ -5,11 +5,14 @@
 extern crate alloc; //当使用 #![no_std] 时，由于不链接标准库，一些在标准库中定义的全局分配器和内存分配相关的功能将不可用。此时，alloc crate 可以作为一个替代品，提供基本的内存分配功能。
 
 pub mod object; //包含模块object中的代码
-use crate::object::object_imp::DummyObject;
-use crate::object::KernelObject;
-use alloc::sync::Arc;
+pub mod task;
+pub use object::*;
+
 #[cfg(test)]
 mod tests {
+    use crate::object::object_imp::DummyObject;
+    use crate::object::KernelObject;
+    use alloc::sync::Arc;
     use super::*;
     #[test]
     fn impl_kobject() {

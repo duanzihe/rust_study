@@ -6,3 +6,4 @@ edition = "2021"
 [dependencies]
 spin = "0.7"
 downcast-rs = { version = "1.2.0", default-features = false } #不启用默认特性集
+bitflags = "1.2"

@@ -2,6 +2,9 @@ use alloc::string::String; //用不了std，所以用alloc提供的String
 use core::fmt::Debug; //用于输出出错时的调试信息
 use downcast_rs::{impl_downcast, DowncastSync}; //用于向下转换
 
+pub use self::object_imp::*;
+
+
 pub mod object_imp; //获取访问子模块的权限，在这个子模块中对object进行实现（implement）
 
 /// 内核对象公共接口，要求所有的内核对象都实现这样的trait。
@@ -19,7 +22,16 @@ pub trait KernelObject: DowncastSync +Debug {  //这里的downcastsync代替了s
     /// 设置对象名称
     fn set_name(&self, name: &str);
 }
-impl_downcast!(sync KernelObject); //自动生成kernelobject对应的 向下转换的函数（sync只是一个占位符）
+impl_downcast!(sync KernelObject); //自动生成kernelobject对应的 向下转换的函数（sync是一个占位符，指示生成的实现是线程安全的）
 /// 对象 ID 类型
 pub type KoID = u64; //kernel_object ID
 
+
+
+//创建一个句柄子模块
+mod handle;
+pub use self::handle::*;  //公开引用，使别的模块可以用直接通过object访问到handle中定义的代码，用于简化路径,
+
+//创建一个权限子模块
+mod rights;
+pub use self::rights::*;  //比如说这样handle模块就可以直接通过super访问到object从而访问rights模块。

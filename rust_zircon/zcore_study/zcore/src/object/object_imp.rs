@@ -3,10 +3,10 @@ use super::*; //为父模块的结构体进行方法实现，引入一个路径�
 use spin::Mutex; //因为不能用依赖操作系统提供系统调用的std,所以用了no_std兼容的spin库中的mutex来实现简单互斥锁。具体实现细节先不深纠，一样用。
 use alloc::sync::Arc;//原子引用计数，用于在多线程环境下安全的共享所有权
 use core::sync::atomic::*;
-
+use super::KernelObject;
 pub struct KObjectBase {
     //dummy有填充物，哑巴之类的意思，dummyobject就是等待填充啥也干不了的空对象，在实现模拟继承后，由KObjectBase代替
-    id: KoID,
+    pub id: KoID,
     inner: Mutex<KObjectBaseInner>, //利用一个带互斥锁的内部可变结构体来存放这个对象可变的成员
 }
 
@@ -24,7 +24,7 @@ struct KObjectBaseInner {
 }
 
 impl Default for KObjectBase {
-    /// 创建一个新 `KObjectBase`
+    /// 用default创建一个kObjectBase的默认实例！
     fn default() -> Self {
         KObjectBase {
             id: Self::new_koid(),
@@ -41,22 +41,23 @@ impl KObjectBase {
     }
 }
 
+#[allow(dead_code)]
 //为对象基类实现”内核对象“特性的相关函数，用于宏自动实现
 impl KObjectBase {
     fn id(&self) -> KoID {
         self.id
     }
-    fn name(&self) -> String {
+    pub fn name(&self) -> String {
         self.inner.lock().name.clone() //取得内部互斥锁，访问name,返回一个拷贝。
     }
-    fn set_name(&self, name: &str) {
+    pub fn set_name(&self, name: &str) {
         //获取空对象的不可变引用（这里是为了保护不可变的部分）
         //可以像访问任何结构体的字段一样直接访问lock函数返回的 MutexGuard<T> 的字段，而不需要先解引用整个 MutexGuard 对象
         self.inner.lock().name = String::from(name); //通过lock()取得内部互斥锁的可变访问权，利用传入的参数修改name。
     }
 }
 
-/// 为内核对象 struct 自动实现 `KernelObject` trait 的宏。
+/// 模拟继承！为内核对象 struct 自动实现 `KernelObject` trait 的宏。
 #[macro_export] // 导出宏，可在 crate 外部使用
 macro_rules! impl_kobject { //定义了一个名为 impl_kobject 的宏
     // 匹配类型名，并可以提供函数覆盖默认实现
@@ -68,7 +69,7 @@ macro_rules! impl_kobject { //定义了一个名为 impl_kobject 的宏
         // 为对象实现 KernelObject trait，方法直接转发到内部 struct
         impl KernelObject for $class {
             fn id(&self) -> KoID {
-                // 直接访问内部的 pub 属性
+                // 直接访问内部的 pub 属性,记得把id改成公开的。
                 self.base.id
             }
             fn type_name(&self) -> &str {
@@ -104,13 +105,13 @@ macro_rules! impl_kobject { //定义了一个名为 impl_kobject 的宏
     };
 }
 
-/// 在实现了 trait 宏之后，用宏来定义一个空对象结构体
+/// 在实现了 模拟继承 宏之后，用宏来定义一个空对象结构体
 pub struct DummyObject {
     // 其中必须包含一个名为 `base` 的 `KObjectBase`
     base: KObjectBase,
 }
 
-// 使用刚才的宏，声明其为内核对象，自动生成必要的代码
+// 使用刚才的宏，声明其为内核对象，自动生成必要的代码，这就是模拟继承
 impl_kobject!(DummyObject);
 
 impl DummyObject {
