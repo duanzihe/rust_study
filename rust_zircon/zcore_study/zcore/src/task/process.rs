@@ -3,7 +3,7 @@ use alloc::collections::BTreeMap;
 use alloc::sync::Arc;
 
 
-
+use crate::error::*;
 use crate::object::*; //引入object模块（包括父模块和子模块，因为在父模块中公开引入了所有子模块，所以在这里只要*就可以了）
 use crate::impl_kobject;  //虽然impl_kobject是在object模块下实现的，但#[macro_export] 导出宏到crate根了，所以要从crate里引入。
 
@@ -72,22 +72,6 @@ impl Process {
     }
 }
 
-///自定义错误类型，之后可能会把他移到其他位置，不过目前就在这吧
-pub type ZxResult<T> = Result<T, ZxError>;
-#[allow(non_camel_case_types, dead_code)]
-#[repr(i32)]
-#[derive(Debug, Clone, Copy)]
-pub enum ZxError {
-    OK = 0,
-    /// 一个不指向handle的特定的handle value
-    BAD_HANDLE = -11,
-    /// 操作主体对于执行这个操作来说是错误的类型
-    /// 例如： 尝试执行 message_read 在 thread handle.
-    WRONG_TYPE = -12,
-    // 权限检查错误
-    // 调用者没有执行该操作的权限
-    ACCESS_DENIED = -30,
-}
 
 
 #[cfg(test)]
